@@ -1,0 +1,22 @@
+# Default values for c#.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  repository: redis
+  tag: 5.0.5-alpine
+  pullPolicy: Always
+service:
+  name: redis
+  namespace: vote-app-dev
+  prefix: /
+  tlsmode: ISTIO_MUTUAL
+  version: "v1.0.0"
+  port: 6379
+resources:
+  limits:
+    cpu: 75m
+    memory: 64Mi
+  requests:
+    cpu: 75m
+    memory: 64Mi

@@ -1,0 +1,87 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+  annotations:
+    "sidecar.jaegertracing.io/inject": "false"
+spec:
+  {{ if .Values.global.rollingupdate }}
+  progressDeadlineSeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  {{ end }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: "{{ template "name" . }}"
+      version: "{{ .Values.service.version }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ template "name" . }}"
+        version: "{{ .Values.service.version }}"
+      annotations:
+        "sidecar.istio.io/inject": "true"
+    spec:
+      {{ if .Values.global.healthcheck }}
+      terminationGracePeriodSeconds: 60
+      {{ end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+          name: http
+        {{ if .Values.global.healthcheck }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sleep
+              - "10"
+        livenessProbe:
+          exec:
+            command:
+            - wget
+            - --quiet
+            - --tries=1
+            - --timeout=4
+            - --spider
+            - http://localhost:{{ .Values.service.port }}/status/healthz
+          timeoutSeconds: 5
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - --quiet
+            - --tries=1
+            - --timeout=4
+            - --spider
+            - http://localhost:{{ .Values.service.port }}/status/readyz
+          timeoutSeconds: 5
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        {{ end }}
+        env:
+        - name: JAEGER_SERVICE_NAME
+          value: "{{ .Values.service.name }}.{{ .Values.service.namespace }}"
+        - name: JAEGER_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: BACKEND_BASE_URL
+          value: "{{ .Values.service.backend }}"
+        - name: LOG_LEVEL
+          value: info
+        - name: FRONTEND_VERSION
+          value: {{ .Values.service.version }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+

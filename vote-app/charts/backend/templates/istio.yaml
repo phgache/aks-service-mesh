@@ -1,0 +1,49 @@
+{{ if and .Values.global.mesh.istio (not .Values.global.flagger)}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    app: {{ template "name" . }}
+    version: "{{ .Values.service.version }}"
+spec:
+  hosts:
+  - "{{ .Values.service.name }}.{{ .Values.service.namespace }}.svc.cluster.local"
+  http:
+  - route:
+    - destination:
+        host: "{{ .Values.service.name }}.{{ .Values.service.namespace }}.svc.cluster.local"
+        subset: {{ .Values.service.version | replace "." "-" }}
+        port:
+          number: {{ .Values.service.port }}
+    {{ if gt .Values.service.timeout 0.0 }}
+    timeout: {{ .Values.service.timeout }}s
+    {{ end }}
+    {{ if gt .Values.service.retries 0.0 }}
+    retries:
+      attempts: {{ .Values.service.retries }}
+      perTryTimeout: {{ .Values.service.retriesTimeout }}s
+      retryOn: {{ .Values.service.retryOn }}
+    {{ end }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ template "name" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    app: {{ template "name" . }}
+    version: "{{ .Values.service.version }}"
+spec:
+  host: "{{ .Values.service.name }}.{{ .Values.service.namespace }}.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: {{ .Values.service.tlsmode }}
+  subsets:
+  - name: {{ .Values.service.version | replace "." "-" }}
+    labels:
+      app: "{{ template "name" . }}"
+      app: {{ template "name" . }}
+      version: "{{ .Values.service.version }}"
+{{ end }}

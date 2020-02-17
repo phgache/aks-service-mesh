@@ -1,0 +1,38 @@
+# Default values for python.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+gateway:
+  fqdn: myapp
+  selector: ingressgateway
+  port: 443
+  protocol: HTTPS
+image:
+  repository: frontend
+  tag: latest
+  pullPolicy: Always
+service:
+  name: frontend
+  namespace: vote-app-dev
+  backend: http://backend/api/hits
+  prefix: /
+  tlsmode: ISTIO_MUTUAL
+  retries: 3
+  retriesTimeout: 1
+  retryOn: "gateway-error,connect-failure,refused-stream,5xx"
+  timeout: 3
+  version: "v1.0.0"
+  port: 80
+autoscale:
+  enabled: true
+  min: 3
+  max: 15
+  resource: cpu
+  average: 75
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

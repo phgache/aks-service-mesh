@@ -1,0 +1,48 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: cert-manager
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: grafana-system
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: prometheus-system
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: observability
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: jaeger-system
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: kiali-system
+  labels: 
+    istio-injection: disabled
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: vote-app-dev
+  labels: 
+    istio-injection: enabled

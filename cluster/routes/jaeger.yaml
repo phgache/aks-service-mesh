@@ -1,0 +1,65 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: cert-jaeger.aks-demo.org
+  namespace: istio-system
+spec:
+  commonName: jaeger.aks-demo.org
+  dnsNames:
+  - jaeger.aks-demo.org
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: cert-jaeger.aks-demo.org
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: jaeger-gateway
+  namespace: jaeger-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - jaeger.aks-demo.org
+    port:
+      name: https-443-jaeger.aks-demo.org
+      number: 443
+      protocol: HTTPS
+    tls:
+      credentialName: cert-jaeger.aks-demo.org
+      mode: SIMPLE
+      privateKey: sds
+      serverCertificate: sds
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: jaeger-vs
+  namespace: jaeger-system
+spec:
+  hosts:
+  - jaeger.aks-demo.org
+  gateways:
+  - jaeger-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: jaeger-query
+        port:
+          number: 16686
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: jaeger
+  namespace: jaeger-system
+spec:
+  host: jaeger-query
+  trafficPolicy:
+    tls:
+      mode: DISABLE

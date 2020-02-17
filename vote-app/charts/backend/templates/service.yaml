@@ -1,0 +1,17 @@
+
+{{ if and .Values.global.mesh.istio (not .Values.global.flagger)}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ template "name" . }}"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  ports:
+  - name: http-backend
+    port: {{ .Values.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.service.port }}
+  selector:
+    app: {{ template "name" . }}
+{{ end }}

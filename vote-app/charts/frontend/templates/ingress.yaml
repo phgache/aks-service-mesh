@@ -1,0 +1,44 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: cert-{{ .Values.gateway.fqdn }}
+  namespace: istio-system
+spec:
+  commonName: {{ .Values.gateway.fqdn }}
+  dnsNames:
+  - {{ .Values.gateway.fqdn }}
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: cert-{{ .Values.gateway.fqdn }}
+  acme:
+    config:
+    - http01:
+        ingressClass: istio
+      domains:
+      - {{ .Values.gateway.fqdn }}
+---
+{{ if .Values.global.mesh.istio }}
+kind: istio
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ template "name" . }}-gateway
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  selector:
+    istio: {{ .Values.gateway.selector }}
+  servers:
+  - hosts:
+    - {{ .Values.gateway.fqdn }}
+    port:
+      name: https-443-{{ .Values.gateway.fqdn }}
+      number: {{ .Values.gateway.port }}
+      protocol: {{ .Values.gateway.protocol }}
+    tls:
+      credentialName: cert-{{ .Values.gateway.fqdn }}
+      mode: SIMPLE
+      privateKey: sds
+      serverCertificate: sds
+{{end}}

@@ -1,0 +1,32 @@
+# Default values for c#.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  repository: backend
+  tag: latest
+  pullPolicy: Always
+service:
+  name: backend
+  namespace: vote-app-dev
+  prefix: /
+  tlsmode: ISTIO_MUTUAL
+  retries: 3
+  retriesTimeout: 1
+  retryOn: "gateway-error,connect-failure,refused-stream,5xx"
+  timeout: 1
+  version: "v1.0.0"
+  port: 80
+autoscale:
+  enabled: true
+  min: 3
+  max: 9
+  resource: cpu
+  average: 75
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi

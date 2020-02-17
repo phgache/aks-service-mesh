@@ -1,0 +1,6 @@
+global:
+  healthcheck: true
+  flagger: false
+  rollingupdate: false
+  mesh:
+    istio: false

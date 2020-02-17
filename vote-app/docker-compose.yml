@@ -1,0 +1,44 @@
+version: '3'
+services:
+  front:
+    build: ./charts/frontend/app
+    ports:
+    - "8080:80"
+    environment:
+    - BACKEND_BASE_URL=http://back:80/api/hits
+    - JAEGER_SERVICE_NAME=frontend
+    - JAEGER_AGENT_HOST=jaeger
+    - FRONTEND_VERSION=compose
+    depends_on:
+    - back
+    - jaeger
+  back:
+    build: ./charts/backend/app
+    ports:
+    - "8081:80"
+    environment:
+    - JAEGER_SERVICE_NAME=backend
+    - JAEGER_SAMPLER_TYPE=const
+    - JAEGER_SAMPLER_PARAM=1
+    - JAEGER_SREPORTER_LOG_SPANS=true
+    - JAEGER_PROPAGATION=B3
+    - JAEGER_AGENT_HOST=jaeger
+    - ASPNETCORE_REDIS=redis:6379
+    - ASPNETCORE_BACKEND_VERSION=compose
+    depends_on:
+    - redis
+    - jaeger
+  redis:
+    image: redis:5.0.5-buster
+  jaeger:
+    image: jaegertracing/all-in-one:1.16
+    ports:
+    - 5775:5775/udp
+    - 6831:6831/udp
+    - 6832:6832/udp
+    - 5778:5778
+    - 16686:16686
+    - 14268:14268
+    - 9411:9411
+    environment:
+    - COLLECTOR_ZIPKIN_HTTP_PORT=9411

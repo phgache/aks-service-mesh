@@ -1,0 +1,8 @@
+requests
+jaeger_client
+opentracing_instrumentation
+Flask-Opentracing
+Flask-API
+flask
+gunicorn
+gevent

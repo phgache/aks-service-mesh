@@ -1,0 +1,9 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: premium-lrs-sc
+provisioner: kubernetes.io/azure-disk
+reclaimPolicy: Delete
+parameters:
+  storageaccounttype: Premium_LRS
+  kind: Managed
