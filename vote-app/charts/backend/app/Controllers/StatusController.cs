@@ -32,10 +32,10 @@ namespace BackendApi.Controllers
     [HttpGet]
     public IActionResult GetHealth()
     {
-      if (counterCurrent++ >= counterMax)
-      {
-        return StatusCode(500, new { message = "unknown error" });
-      }
+      // if (counterCurrent++ >= counterMax)
+      // {
+      //   return StatusCode(500, new { message = "unknown error" });
+      // }
       return Ok(new { message = "backend is healthy" });
     }
 
