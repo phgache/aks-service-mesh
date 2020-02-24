@@ -15,7 +15,7 @@ spec:
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        args: ["--loglevel", "debug", "--maxclients", "300"]
+        args: ["--loglevel", "warning", "--maxclients", "500"]
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.service.port }}

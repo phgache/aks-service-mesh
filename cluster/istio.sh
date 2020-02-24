@@ -71,7 +71,7 @@ helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --instal
   --set mixer.telemetry.resources.requests.memory=128Mi \
   --set mixer.telemetry.resources.limits.cpu=500m \
   --set mixer.telemetry.resources.limits.memory=512Mi \
-  --set pilot.traceSampling=100.0 \
+  --set pilot.traceSampling=10.0 \
   --tiller-namespace kube-system --wait --timeout 900
 
 kubectl apply -f cluster/routes

@@ -24,7 +24,7 @@ export VM_SKU="Standard_F4s_v2"
 
 export CERTMANAGER_VERSION=0.12
 
-export ISTIO_VERSION=1.4.4
+export ISTIO_VERSION=1.4.5
 export KIALI_VERSION=v1.13.1
 
 export KUBESTATEMETRICS_VERSION=v1.9.2
@@ -44,12 +44,3 @@ export KIALI_USERNAME=$(echo -n "kiali" | base64)
 export KIALI_PASSPHRASE=$(echo -n $PASSWORD | base64)
 
 export SP_PASSWORD=$(openssl rand -base64 16 | md5 | head -c16;echo)
-
-#
-# Generate azure ad objects
-# 
-
-source cluster/generate-creds.sh $PREFIX $AAD_INTEGRATION
-
-#export SERVICE_PRINCIPAL_ID=
-#export SERVICE_PRINCIPAL_PASSWORD=
