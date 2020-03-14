@@ -29,9 +29,11 @@ done
 # loglevel : trace|debug|info|warning|error|critical|off
 
 helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --install --namespace $ISTIO_NAMESPACE \
-  --set global.proxy.logLevel="debug" \
-  --set values.global.mtls.auto=true \
+  --set global.proxy.logLevel="info" \
+  --set global.controlPlaneSecurityEnabled=true \
   --set global.mtls.enabled=true \
+  --set global.mtls.auto=true \
+  --set sidecarInjectorWebhook.rewriteAppHTTPProbe=true \
   --set grafana.enabled=false \
   --set global.tracer.zipkin.address="jaeger-collector.${JAEGER_NAMESPACE}.svc.cluster.local:9411" \
   --set tracing.enabled=false \
@@ -67,11 +69,6 @@ helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --instal
   --set global.proxy.resources.requests.memory=128Mi \
   --set global.proxy.resources.limits.cpu=300m \
   --set global.proxy.resources.limits.memory=256Mi \
-  --set mixer.telemetry.resources.requests.cpu=200m \
-  --set mixer.telemetry.resources.requests.memory=128Mi \
-  --set mixer.telemetry.resources.limits.cpu=500m \
-  --set mixer.telemetry.resources.limits.memory=512Mi \
-  --set pilot.traceSampling=10.0 \
   --tiller-namespace kube-system --wait --timeout 900
 
 kubectl apply -f cluster/routes
@@ -86,7 +83,7 @@ NODE_RG=$(az aks show -n $CLUSTER_NAME -g $RESOURCE_GROUP_NAME --query nodeResou
 PUBLIC_IP=$(az network public-ip list -g $NODE_RG --query "[?tags.service=='$ISTIO_NAMESPACE/istio-ingressgateway'].ipAddress" -o tsv)
 echo "Public IP : $PUBLIC_IP"
 
-apps=( "grafana" "jaeger" "kiali" "prometheus" "vote-app" )
+apps=( "grafana" "jaeger" "kiali" "prometheus" "kibana" "apm" "vote-app" )
  
 for app in "${apps[@]}"
 do

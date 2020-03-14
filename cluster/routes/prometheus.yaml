@@ -62,4 +62,4 @@ spec:
   host: prometheus-server
   trafficPolicy:
     tls:
-      mode: DISABLE
+      mode: ISTIO_MUTUAL

@@ -71,8 +71,8 @@ SUBNET_ID=$(az network vnet subnet show --resource-group ${RESOURCE_GROUP_NAME} 
 AKS_FQDN=$(az aks show -n $CLUSTER_NAME -g $RESOURCE_GROUP_NAME --query fqdn -o tsv)
 
 # Create a role assignment for your AKS cluster to access the ACR instance
-az role assignment create --role AcrPull --assignee $SERVICE_PRINCIPAL_ID --scope $ACR_RESOURCE_ID
-az role assignment create --role Owner --assignee $SERVICE_PRINCIPAL_ID
+#az role assignment create --role AcrPull --assignee $SERVICE_PRINCIPAL_ID --scope $ACR_RESOURCE_ID
+#az role assignment create --role Owner --assignee $SERVICE_PRINCIPAL_ID
 
 #
 # Namespaces
@@ -85,7 +85,7 @@ kubectl apply -f cluster/namespaces.yaml
 #
 
 DNS_ZONE_ID=$(az network dns zone show --name $DNS_ZONE --resource-group $DNS_ZONE_RG --query "id" --output tsv)
-az role assignment create --assignee $SERVICE_PRINCIPAL_ID --role "DNS Zone Contributor" --scope $DNS_ZONE_ID
+#az role assignment create --assignee $SERVICE_PRINCIPAL_ID --role "DNS Zone Contributor" --scope $DNS_ZONE_ID
 SP_PASSWORD=$(echo -n $SERVICE_PRINCIPAL_PASSWORD | base64)
 
 cat <<EOF | kubectl apply -f -
