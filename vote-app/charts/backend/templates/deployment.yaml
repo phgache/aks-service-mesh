@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: "{{ template "name" . }}"
+  namespace: {{ .Values.service.namespace }}
   version: "{{ .Values.service.version }}"
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
@@ -36,7 +37,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.service.port }}
+        - containerPort: {{ .Values.container.port }}
           name: http
         {{ if .Values.global.healthcheck }}
         lifecycle:
@@ -69,6 +70,18 @@ spec:
           periodSeconds: 3
         {{ end }}
         env:
+        - name: ELASTIC_APM_SERVICE_NAME
+          value: {{ .Values.service.name }}
+        - name: ELASTIC_APM_SERVICE_VERSION
+          value: {{ .Values.service.version }}
+        - name: ELASTIC_APM_ENVIRONMENT
+          value: {{ .Values.service.namespace }}
+        - name: ELASTIC_APM_TRANSACTION_SAMPLE_RATE
+          value: "1.0"
+        - name: ELASTIC_APM_SERVER_URLS
+          value: {{ .Values.apm.server }}
+        - name: ELASTIC_APM_SECRET_TOKEN
+          value: {{ .Values.apm.token }}
         - name: JAEGER_SERVICE_NAME
           value: "{{ .Values.service.name }}.{{ .Values.service.namespace }}"
         - name: JAEGER_SAMPLER_TYPE

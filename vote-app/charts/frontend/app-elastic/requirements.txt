@@ -1,0 +1,10 @@
+requests
+opentracing_instrumentation
+Flask-Opentracing
+Flask-API
+flask
+gevent
+blinker
+uwsgi 
+elastic-apm[flask] 
+elastic-apm[opentracing]

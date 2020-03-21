@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: {{ template "name" . }}
+  namespace: {{ .Values.service.namespace }}
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
   annotations:
@@ -78,6 +79,12 @@ spec:
               fieldPath: status.hostIP
         - name: BACKEND_BASE_URL
           value: "{{ .Values.service.backend }}"
+        # - name: ELASTIC_APM_SERVICE_NAME
+        #   value: "{{ .Values.service.name }}_{{ .Values.service.namespace }}"
+        # - name: ELASTIC_APM_SECRET_TOKEN
+        #   value: 9n5kbt82g9zwz8sqmnpvzsrm
+        # - name: ELASTIC_APM_SERVER_URL
+        #   value: "http://apmserver-apm-http.elastic-system.svc.cluster.local:8200"
         - name: LOG_LEVEL
           value: info
         - name: FRONTEND_VERSION

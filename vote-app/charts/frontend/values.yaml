@@ -11,6 +11,8 @@ image:
   repository: frontend
   tag: latest
   pullPolicy: Always
+container:
+  port: 8080
 service:
   name: frontend
   namespace: vote-app-dev

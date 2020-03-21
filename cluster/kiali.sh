@@ -29,7 +29,6 @@ metadata:
   annotations:
     ansible.operator-sdk/verbosity: "3"
 spec:
-  installation_tag: $KIALI_VERSION
   istio_namespace: $ISTIO_NAMESPACE
   identity:
     cert_file: ""
@@ -41,7 +40,10 @@ spec:
       - $CERT_MANAGER_NAMESPACE
       - default
   deployment:
-    verbose_mode: "4"
+    verbose_mode: "3"
+    namespace: $KIALI_NAMESPACE
+    image_version: $KIALI_VERSION
+    service_type: ClusterIP
   external_services:
     grafana:
       auth:

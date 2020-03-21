@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install wget -y
 WORKDIR /app
 COPY --from=builder /app .
 
-ENV PORT 80
-EXPOSE 80
+ENV PORT 8081
+ENV ASPNETCORE_URLS http://+:8081
+EXPOSE 8081
 
 ENTRYPOINT dotnet $(cat /app/__assemblyname).dll
