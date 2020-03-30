@@ -21,6 +21,38 @@ data:
 EOF
 
 cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: istio-pilot
+  namespace: $ISTIO_NAMESPACE
+spec:
+  host: istio-pilot.istio-system.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http2MaxRequests: 10000
+        maxRequestsPerConnection: 10000
+    portLevelSettings:
+    - port:
+        number: 15010
+      tls:
+        mode: ISTIO_MUTUAL
+    - port:
+        number: 15011
+      tls:
+        mode: ISTIO_MUTUAL
+    - port:
+        number: 15014
+      tls:
+        mode: ISTIO_MUTUAL
+    - port:
+        number: 8080
+      tls:
+        mode: DISABLE
+EOF
+
+cat <<EOF | kubectl apply -f -
 apiVersion: kiali.io/v1alpha1
 kind: Kiali
 metadata:
@@ -29,6 +61,10 @@ metadata:
   annotations:
     ansible.operator-sdk/verbosity: "3"
 spec:
+  istio_component_namespaces:
+  - prometheus: $PROMETHEUS_NAMESPACE
+  - grafana: $GRAFANA_NAMESPACE
+  - kiali: $KIALI_NAMESPACE
   istio_namespace: $ISTIO_NAMESPACE
   identity:
     cert_file: ""
@@ -42,8 +78,15 @@ spec:
   deployment:
     verbose_mode: "3"
     namespace: $KIALI_NAMESPACE
-    image_version: $KIALI_VERSION
-    service_type: ClusterIP
+    image_version: "v1.15.0"
+    service_type: "ClusterIP"
+  extensions:
+    threescale:
+      enabled: true
+    iter8:
+      enabled: false
+  server:
+    web_root: "/"
   external_services:
     grafana:
       auth:
@@ -82,4 +125,35 @@ spec:
       enabled: true
       in_cluster_url: http://jaeger-query.${JAEGER_NAMESPACE}.svc:16686
       url: https://jaeger.${DOMAIN_NAME}
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: meshpolicies-cr
+rules:
+- apiGroups:
+  - "authentication.istio.io"
+  resources:
+  - meshpolicies
+  verbs:
+  - get
+  - list
+  - watch
+EOF
+
+cat <<EOF | kubectl apply -f -
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: meshpolicies-crb
+roleRef:
+  kind: ClusterRole
+  name: meshpolicies-cr
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: kiali-service-account
+  namespace: $KIALI_NAMESPACE
 EOF

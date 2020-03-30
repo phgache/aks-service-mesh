@@ -108,3 +108,4 @@ bin/
 .DS_Store
 
 istio-*/
+cluster/jaeger-operator/base

@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ template "name" . }}"
@@ -7,7 +7,7 @@ metadata:
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
   annotations:
-    "sidecar.jaegertracing.io/inject": "false"
+    "sidecar.jaegertracing.io/inject": "true"
 spec:
   {{ if .Values.global.rollingupdate }}
   progressDeadlineSeconds: 30
@@ -82,6 +82,8 @@ spec:
           value: {{ .Values.apm.server }}
         - name: ELASTIC_APM_SECRET_TOKEN
           value: {{ .Values.apm.token }}
+        - name: ELASTIC_APM_SPAN_FRAMES_MIN_DURATION
+          value: "-1ms"
         - name: JAEGER_SERVICE_NAME
           value: "{{ .Values.service.name }}.{{ .Values.service.namespace }}"
         - name: JAEGER_SAMPLER_TYPE
@@ -92,10 +94,6 @@ spec:
           value: "true"
         - name: JAEGER_PROPAGATION # Jaeger / B3
           value: "B3"
-        - name: JAEGER_AGENT_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
         - name: ASPNETCORE_REDIS
           value: redis:6379
         - name: ASPNETCORE_BACKEND_VERSION

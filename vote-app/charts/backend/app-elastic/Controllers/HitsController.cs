@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using BackendApi.Models;
 using BackendApi.Services;
 using Microsoft.Extensions.Configuration;
+using Elastic.Apm;
+using Elastic.Apm.Api;
 
 namespace BackendApi.Controllers
 {
@@ -28,13 +30,24 @@ namespace BackendApi.Controllers
     [HttpGet("{id}")]
     public async Task<ActionResult<Hits>> Get(int id)
     {
+      var current = Elastic.Apm.Agent.Tracer.CurrentTransaction;
+      Hits result = null;
+
       var key = id.ToString();
-      Hits result = result = await cache.Get<Hits>(key);
+      await current.CaptureSpan("Get", "Redis", async (span) =>
+      {
+        span.Labels["key"] = key;
+        result = await cache.Get<Hits>(key);
+      });
 
       if (result == null)
       {
-        result = new Hits(id);
-        await cache.CreateOrUpdate<Hits>(key, result);
+        await current.CaptureSpan("CreateOrUpdate", "Redis", async (span) =>
+        {
+          span.Labels["key"] = key;
+          result = new Hits(id);
+          await cache.CreateOrUpdate<Hits>(key, result);
+        });
       }
       result.BackendVersion = version;
       return result;
@@ -44,31 +57,51 @@ namespace BackendApi.Controllers
     [HttpPost]
     public async Task Post([FromBody] Hits hits)
     {
+      var current = Elastic.Apm.Agent.Tracer.CurrentTransaction;
+      Hits result = null;
       var key = hits.Id.ToString();
-      var result = await cache.Get<Hits>(key);
+      await current.CaptureSpan("Get", "Redis", async (span) =>
+      {
+        span.Labels["key"] = key;
+        result = await cache.Get<Hits>(key);
+      });
 
       if (result == null)
       {
         result = new Hits(hits.Id);
       }
-
-      result.Count++;
-      result.LastUpdated = DateTime.Now;
-      await cache.CreateOrUpdate<Hits>(key, result);
+      await current.CaptureSpan("CreateOrUpdate", "Redis", async (span) =>
+      {
+        result.Count++;
+        span.Labels["key"] = key;
+        result.LastUpdated = DateTime.Now;
+        await cache.CreateOrUpdate<Hits>(key, result);
+      });
     }
 
     // DELETE api/hits/5
     [HttpDelete("{id}")]
     public async Task Delete(int id)
     {
+      var current = Elastic.Apm.Agent.Tracer.CurrentTransaction;
+      Hits result = null;
       var key = id.ToString();
-      var result = await cache.Get<Hits>(key);
+      await current.CaptureSpan("Get", "Redis", async (span) =>
+      {
+        span.Labels["key"] = key;
+        result = await cache.Get<Hits>(key);
+      });
 
       if (result != null)
       {
-        result.Count = 0;
-        await cache.CreateOrUpdate<Hits>(key, result);
+        await current.CaptureSpan("CreateOrUpdate", "Redis", async (span) =>
+        {
+          result.Count = 0;
+          span.Labels["key"] = key;
+          await cache.CreateOrUpdate<Hits>(key, result);
+        });
       }
+
     }
   }
 }

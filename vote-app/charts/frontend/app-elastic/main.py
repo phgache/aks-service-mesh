@@ -13,13 +13,6 @@ from elasticapm.contrib.opentracing import Tracer
 from opentracing.propagation import Format
 
 app = Flask(__name__)
-
-# configure to use ELASTIC_APM in your application's settings from elasticapm.contrib.flask import ElasticAPM
-app.config['ELASTIC_APM'] = {
-    'SERVICE_NAME': 'frontend',
-    'SECRET_TOKEN': '78n6rh8nlp4ls96zk7cspk8h',
-    'SERVER_URL': 'http://apmserver-apm-http.elastic-system.svc.cluster.local:8200'
-}
 apm = ElasticAPM(app, logging=True)
 
 # Load configurations from environment or config file

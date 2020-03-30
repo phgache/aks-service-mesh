@@ -29,7 +29,7 @@ done
 # loglevel : trace|debug|info|warning|error|critical|off
 
 helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --install --namespace $ISTIO_NAMESPACE \
-  --set global.proxy.logLevel="info" \
+  --set global.proxy.logLevel="debug" \
   --set global.controlPlaneSecurityEnabled=true \
   --set global.mtls.enabled=true \
   --set global.mtls.auto=true \
@@ -69,6 +69,11 @@ helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --instal
   --set global.proxy.resources.requests.memory=128Mi \
   --set global.proxy.resources.limits.cpu=300m \
   --set global.proxy.resources.limits.memory=256Mi \
+  --set mixer.telemetry.resources.requests.cpu=200m \
+  --set mixer.telemetry.resources.requests.memory=128Mi \
+  --set mixer.telemetry.resources.limits.cpu=500m \
+  --set mixer.telemetry.resources.limits.memory=512Mi \
+  --set pilot.traceSampling=10.0 \
   --tiller-namespace kube-system --wait --timeout 900
 
 kubectl apply -f cluster/routes

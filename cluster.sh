@@ -19,12 +19,12 @@ export SERVICE_PRINCIPAL_PASSWORD=10eccdd3-58b4-4b15-851f-32527d5a8c00
 # ./cluster/create-aks.sh
 
 #2 Operators
-# ./cluster/operators.sh
+./cluster/operators.sh
 
 #3 Services
 # ./cluster/istio.sh
 # ./cluster/eck.sh
-./cluster/kiali.sh
+# ./cluster/kiali.sh
 # ./cluster/jaeger.sh
 # ./cluster/prometheus.sh
 # ./cluster/grafana.sh

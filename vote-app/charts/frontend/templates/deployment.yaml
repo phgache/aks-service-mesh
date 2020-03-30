@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "name" . }}
@@ -6,7 +6,7 @@ metadata:
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
   annotations:
-    "sidecar.jaegertracing.io/inject": "false"
+    "sidecar.jaegertracing.io/inject": "true"
 spec:
   {{ if .Values.global.rollingupdate }}
   progressDeadlineSeconds: 30
@@ -73,18 +73,22 @@ spec:
         env:
         - name: JAEGER_SERVICE_NAME
           value: "{{ .Values.service.name }}.{{ .Values.service.namespace }}"
-        - name: JAEGER_AGENT_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
         - name: BACKEND_BASE_URL
           value: "{{ .Values.service.backend }}"
-        # - name: ELASTIC_APM_SERVICE_NAME
-        #   value: "{{ .Values.service.name }}_{{ .Values.service.namespace }}"
-        # - name: ELASTIC_APM_SECRET_TOKEN
-        #   value: 9n5kbt82g9zwz8sqmnpvzsrm
-        # - name: ELASTIC_APM_SERVER_URL
-        #   value: "http://apmserver-apm-http.elastic-system.svc.cluster.local:8200"
+        - name: ELASTIC_APM_SERVICE_NAME
+          value: {{ .Values.service.name }}
+        - name: ELASTIC_APM_SERVICE_VERSION
+          value: {{ .Values.service.version }}
+        - name: ELASTIC_APM_ENVIRONMENT
+          value: {{ .Values.service.namespace }}
+        - name: ELASTIC_APM_TRANSACTION_SAMPLE_RATE
+          value: "1.0"
+        - name: ELASTIC_APM_SERVER_URL
+          value: {{ .Values.apm.server }}
+        - name: ELASTIC_APM_SECRET_TOKEN
+          value: {{ .Values.apm.token }}
+        - name: ELASTIC_APM_SPAN_FRAMES_MIN_DURATION
+          value: "-1ms"
         - name: LOG_LEVEL
           value: info
         - name: FRONTEND_VERSION

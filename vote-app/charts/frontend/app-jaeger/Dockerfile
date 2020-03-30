@@ -2,9 +2,9 @@ FROM debian:buster as build
 
 RUN printf "Acquire::http::Pipeline-Depth 0;\nAcquire::http::No-Cache true;\nAcquire::BrokenProxy true;" > /etc/apt/apt.conf.d/99fixbadproxy
 
-RUN apt-get update && apt-get install -y  --no-install-recommends \
-  python3.7 \
-  python3.7-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  python3 \
+  python3-dev \
   python3-distutils \
   python3-pip \
   python3-setuptools \
@@ -21,7 +21,8 @@ FROM debian:buster-slim as run
 RUN printf "Acquire::http::Pipeline-Depth 0;\nAcquire::http::No-Cache true;\nAcquire::BrokenProxy true;" > /etc/apt/apt.conf.d/99fixbadproxy
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3.7 \
+  python3 \
+  python3-setuptools \
   libcap2 \
   libpython3.7 \
   && rm -rf /var/lib/apt/lists/*
@@ -44,4 +45,4 @@ EXPOSE 8080
 
 USER gunicorn:gunicorn
 
-CMD ["gunicorn","--bind","0.0.0.0:8080","--workers=2","--worker-class=gevent","--worker-connections=1000","main:app"]
+CMD ["gunicorn","--bind","0.0.0.0:8080","--workers=2","--worker-class=gevent","--worker-connections=1000","--log-level=debug","main:app"]
