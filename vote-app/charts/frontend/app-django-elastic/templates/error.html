@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <link rel="icon" href="data:,">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "default.css" %}" />
+    <title>Error</title>
+  </head>
+  <body>
+    <div id="container">
+      <div id="logo">{{ title }}</div>
+      <div id="space"></div>
+      <div id="error">{{ error }}</div>
+    </div>
+  </body>
+</html>
