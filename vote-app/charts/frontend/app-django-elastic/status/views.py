@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-def healthz(request, exception):
+def healthz(request):
   return HttpResponse("OK")
 
 
-def readyz(request, exception):
+def readyz(request):
   return HttpResponse("OK")

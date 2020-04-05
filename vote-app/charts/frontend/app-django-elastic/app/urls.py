@@ -6,5 +6,5 @@ urlpatterns = [
     path('status/', include('status.urls')),
 ]
 
-# handler404 = 'customerror.views.handler404'
-# handler500 = 'customerror.views.handler500'
+handler404 = 'customerror.views.handler404'
+handler500 = 'customerror.views.handler500'

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import structlog
+from elasticapm.handlers.structlog import structlog_processor
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ta+1z4uwk9$4v1=##m_lu9avcj5c#6q6m3^gyjn^^*9c-_)oc0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
@@ -50,7 +51,9 @@ MIDDLEWARE = [
     # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     # 'django.contrib.messages.middleware.MessageMiddleware',
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_structlog.middlewares.RequestMiddleware',
+    # 'django_structlog.middlewares.RequestMiddleware',
+    'elasticapm.contrib.django.middleware.TracingMiddleware',
+    'elasticapm.contrib.django.middleware.Catch404Middleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -74,37 +77,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'app.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
-}
-
-
-# Password validation
-# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    # },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    # },
-]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -133,34 +105,72 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "json_formatter": {
+        "json": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.processors.JSONRenderer(),
+        },
+        "console": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(),
         },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "json_formatter",
+            "formatter": "json",
         },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG",
+        "elasticapm": {
+            "class": "elasticapm.contrib.django.handlers.LoggingHandler",
+            "level": os.getenv("DJANGO_ELASTICAPM_LOG_LEVEL", "INFO"),
+        },
     },
     "loggers": {
         "django": {
-            "handlers": ["console"],
+            "handlers": ["console", "elasticapm"],
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["console", "elasticapm"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+        "django.request": {
+            "handlers": ["console", "elasticapm"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+        "vote": {
+            "handlers": ["console", "elasticapm"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+        "elasticapm": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_ELASTICAPM_LOG_LEVEL", "INFO"),
         },
     },
 }
 
-structlog.configure(
-    processors=[
+# structlog.configure(
+#     processors=[
+#         # structlog.stdlib.filter_by_level,
+#         # structlog.processors.TimeStamper(fmt="iso"),
+#         # structlog.stdlib.add_logger_name,
+#         # structlog.stdlib.add_log_level,
+#         # structlog.stdlib.PositionalArgumentsFormatter(),
+#         # structlog.processors.StackInfoRenderer(),
+#         # structlog.processors.format_exc_info,
+#         # structlog.processors.UnicodeDecoder(),
+#         # structlog.processors.ExceptionPrettyPrinter(),
+#         # structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+#         structlog_processor,
+#     ],
+#     # context_class=structlog.threadlocal.wrap_dict(dict),
+#     # logger_factory=structlog.stdlib.LoggerFactory(),
+#     # wrapper_class=structlog.stdlib.BoundLogger,
+#     cache_logger_on_first_use=True,
+# )
+
+structlog_processors = [
         structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.TimeStamper(fmt="iso", key="@timestamp"),
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.stdlib.PositionalArgumentsFormatter(),
@@ -169,35 +179,25 @@ structlog.configure(
         structlog.processors.UnicodeDecoder(),
         structlog.processors.ExceptionPrettyPrinter(),
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
+    ]
+
+try:
+    from elasticapm.handlers.structlog import structlog_processor
+    structlog_processors.insert(4, structlog_processor)
+except ImportError:
+    pass
+
+
+structlog.configure(
+    processors=structlog_processors,
     context_class=structlog.threadlocal.wrap_dict(dict),
     logger_factory=structlog.stdlib.LoggerFactory(),
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
 
-
-if ("VOTE1VALUE" in os.environ and os.environ['VOTE1VALUE']):
-    VOTE1VALUE = os.environ['VOTE1VALUE']
-else:
-    VOTE1VALUE = 'Cats'
-
-if ("VOTE2VALUE" in os.environ and os.environ['VOTE2VALUE']):
-    VOTE2VALUE = os.environ['VOTE2VALUE']
-else:
-    VOTE2VALUE = 'Dogs'
-
-if ("TITLE" in os.environ and os.environ['TITLE']):
-    TITLE = os.environ['TITLE']
-else:
-    TITLE = 'Azure Voting App'
-
-if ("FRONTEND_VERSION" in os.environ and os.environ['FRONTEND_VERSION']):
-    FRONTEND_VERSION = os.environ['FRONTEND_VERSION']
-else:
-    FRONTEND_VERSION = 'local'
-
-if ("BACKEND_BASE_URL" in os.environ and os.environ['BACKEND_BASE_URL']):
-    BACKEND_BASE_URL = os.environ['BACKEND_BASE_URL']
-else:
-    BACKEND_BASE_URL = 'http://localhost:8081/api/hits'
+VOTE1VALUE = os.getenv("VOTE1VALUE", "Cats")
+VOTE2VALUE = os.getenv("VOTE2VALUE", "Dogs")
+TITLE = os.getenv("TITLE", "Azure Voting App")
+FRONTEND_VERSION = os.getenv("FRONTEND_VERSION", "local")
+BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL", "http://localhost:8081/api/hits")

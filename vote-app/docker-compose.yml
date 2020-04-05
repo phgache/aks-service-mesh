@@ -2,7 +2,7 @@ version: "3.7"
 services:
   front:
     build: 
-      context: ./charts/frontend/app-elastic
+      context: ./charts/frontend/app-django-elastic
       dockerfile: Dockerfile
     ports:
     - "8080:8080"
@@ -11,31 +11,36 @@ services:
     - JAEGER_SERVICE_NAME=frontend
     - JAEGER_AGENT_HOST=jaeger
     - FRONTEND_VERSION=compose
-    # - ELASTIC_APM_USE_STRUCTLOG=true
-    - ELASTIC_APM_DEBUG=true
-  #   depends_on:
-  #   - back
-  #   # - jaeger
-  # back:
-  #   build: 
-  #     context: ./charts/backend/app-elastic
-  #     dockerfile: Dockerfile
-  #   ports:
-  #   - "8081:8081"
-  #   environment:
-  #   - JAEGER_SERVICE_NAME=backend
-  #   - JAEGER_SAMPLER_TYPE=const
-  #   - JAEGER_SAMPLER_PARAM=1
-  #   - JAEGER_SREPORTER_LOG_SPANS=true
-  #   - JAEGER_PROPAGATION=B3
-  #   - JAEGER_AGENT_HOST=jaeger
-  #   - ASPNETCORE_REDIS=redis:6379
-  #   - ASPNETCORE_BACKEND_VERSION=compose
-  #   depends_on:
-  #   - redis
+    - ELASTIC_APM_SERVICE_NAME=front
+    - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+    - ELASTIC_APM_USE_STRUCTLOG=true
+    - ELASTIC_APM_SPAN_FRAMES_MIN_DURATION="-1ms"
+    depends_on:
+    - back
     # - jaeger
-  # redis:
-  #   image: redis:5.0.5-buster
+  back:
+    build: 
+      context: ./charts/backend/app-elastic
+      dockerfile: Dockerfile
+    ports:
+    - "8081:8081"
+    environment:
+    - JAEGER_SERVICE_NAME=backend
+    - JAEGER_SAMPLER_TYPE=const
+    - JAEGER_SAMPLER_PARAM=1
+    - JAEGER_SREPORTER_LOG_SPANS=true
+    - JAEGER_PROPAGATION=B3
+    - JAEGER_AGENT_HOST=jaeger
+    - ASPNETCORE_REDIS=redis:6379
+    - ASPNETCORE_BACKEND_VERSION=compose
+    - ELASTIC_APM_DEBUG=true
+    - ELASTIC_APM_SERVICE_NAME=back
+    - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
+    depends_on:
+    - redis
+    # - jaeger
+  redis:
+    image: redis:5.0.5-buster
   # jaeger:
   #   image: jaegertracing/all-in-one:1.16
   #   ports:
@@ -48,3 +53,29 @@ services:
   #   - 9411:9411
   #   environment:
   #   - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.2
+    # volumes:
+    #   - esdata:/usr/share/elasticsearch/data:rw
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      cluster.name: "docker-cluster"
+      network.host: 0.0.0.0
+      discovery.zen.minimum_master_nodes: 1
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    # networks:
+    #   - elk
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server-oss:7.6.2
+    # volumes:
+    #   - ./apm-server/config/apm-server.docker.yml:/usr/share/apm-server/apm-server.yml:ro
+    ports:
+      - "8200:8200"
+    # networks:
+    #   - elk
+    depends_on:
+      - elasticsearch
