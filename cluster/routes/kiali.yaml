@@ -62,4 +62,4 @@ spec:
   host: kiali
   trafficPolicy:
     tls:
-      mode: DISABLE
+      mode: ISTIO_MUTUAL

@@ -1,0 +1,9 @@
+django
+django-structlog
+opentracing_instrumentation 
+gunicorn
+gevent
+elastic-apm
+elastic-apm[opentracing]
+structlog
+requests

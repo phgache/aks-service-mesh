@@ -6,6 +6,8 @@ image:
   repository: backend
   tag: latest
   pullPolicy: Always
+container:
+  port: 8081
 service:
   name: backend
   namespace: vote-app-dev
@@ -17,6 +19,9 @@ service:
   timeout: 1
   version: "v1.0.0"
   port: 80
+apm:
+  server: "http://apmserver-apm-http.elastic-system.svc.cluster.local:8200"
+  token: ""
 autoscale:
   enabled: true
   min: 3

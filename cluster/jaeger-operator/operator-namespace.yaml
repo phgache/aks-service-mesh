@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-operator
+spec:
+  template:
+    spec:
+      containers:
+      - name: jaeger-operator
+        env:
+        - $patch: delete
+          name: WATCH_NAMESPACE
+        - name: WATCH_NAMESPACE
+          value: jaeger-system

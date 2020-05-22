@@ -11,6 +11,6 @@ spec:
   - name: http-frontend
     port: {{ .Values.service.port }}
     protocol: TCP
-    targetPort: {{ .Values.service.port }}
+    targetPort: {{ .Values.container.port }}
   selector:
     app: {{ template "name" . }}

@@ -11,6 +11,8 @@ image:
   repository: frontend
   tag: latest
   pullPolicy: Always
+container:
+  port: 8080
 service:
   name: frontend
   namespace: vote-app-dev
@@ -23,6 +25,9 @@ service:
   timeout: 3
   version: "v1.0.0"
   port: 80
+apm:
+  server: "http://apmserver-apm-http.elastic-system.svc.cluster.local:8200"
+  token: ""
 autoscale:
   enabled: true
   min: 3

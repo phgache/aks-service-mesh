@@ -30,8 +30,10 @@ done
 
 helm upgrade istio ./istio-$ISTIO_VERSION/install/kubernetes/helm/istio --install --namespace $ISTIO_NAMESPACE \
   --set global.proxy.logLevel="debug" \
-  --set values.global.mtls.auto=true \
+  --set global.controlPlaneSecurityEnabled=true \
   --set global.mtls.enabled=true \
+  --set global.mtls.auto=true \
+  --set sidecarInjectorWebhook.rewriteAppHTTPProbe=true \
   --set grafana.enabled=false \
   --set global.tracer.zipkin.address="jaeger-collector.${JAEGER_NAMESPACE}.svc.cluster.local:9411" \
   --set tracing.enabled=false \
@@ -86,7 +88,7 @@ NODE_RG=$(az aks show -n $CLUSTER_NAME -g $RESOURCE_GROUP_NAME --query nodeResou
 PUBLIC_IP=$(az network public-ip list -g $NODE_RG --query "[?tags.service=='$ISTIO_NAMESPACE/istio-ingressgateway'].ipAddress" -o tsv)
 echo "Public IP : $PUBLIC_IP"
 
-apps=( "grafana" "jaeger" "kiali" "prometheus" "vote-app" )
+apps=( "grafana" "jaeger" "kiali" "prometheus" "kibana" "apm" "vote-app" )
  
 for app in "${apps[@]}"
 do

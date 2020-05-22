@@ -1,0 +1,87 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: cert-kibana.aks-demo.org
+  namespace: istio-system
+spec:
+  commonName: kibana.aks-demo.org
+  dnsNames:
+  - kibana.aks-demo.org
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt
+  secretName: cert-kibana.aks-demo.org
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kibana-gateway
+  namespace: elastic-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - kibana.aks-demo.org
+    port:
+      name: https-443-kibana.aks-demo.org
+      number: 443
+      protocol: HTTPS
+    tls:
+      credentialName: cert-kibana.aks-demo.org
+      mode: SIMPLE
+      privateKey: sds
+      serverCertificate: sds
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kibana-vs
+  namespace: elastic-system
+spec:
+  hosts:
+  - kibana.aks-demo.org
+  gateways:
+  - kibana-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: kibana-kb-http
+        port:
+          number: 5601
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: kibana
+  namespace: elastic-system
+spec:
+  host: kibana-kb-http
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: apm
+  namespace: elastic-system
+spec:
+  host: apmserver-apm-http
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: elasticsearch
+  namespace: elastic-system
+spec:
+  host: elasticsearch-es-http
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
