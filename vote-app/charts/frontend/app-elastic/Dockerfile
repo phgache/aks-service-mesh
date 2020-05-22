@@ -21,12 +21,13 @@ FROM debian:buster-slim as run
 RUN printf "Acquire::http::Pipeline-Depth 0;\nAcquire::http::No-Cache true;\nAcquire::BrokenProxy true;" > /etc/apt/apt.conf.d/99fixbadproxy
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3.7 \
+  python3 \
+  python3-setuptools \
   libcap2 \
   libpython3.7 \
   && rm -rf /var/lib/apt/lists/*
 
-ENV USER=uwsgi UID=1000 GID=1000
+ENV USER=gunicorn UID=1000 GID=1000
 
 RUN addgroup --gid "$GID" "$USER" \
   && adduser \
@@ -37,13 +38,20 @@ RUN addgroup --gid "$GID" "$USER" \
   "$USER"
 
 COPY --from=build /packages/usr/local /usr/local
-COPY --chown=uwsgi:uwsgi . /app
+COPY --chown=gunicorn:gunicorn . /app
 WORKDIR /app
 
 EXPOSE 8080
 
-USER uwsgi:uwsgi
+USER gunicorn:gunicorn
 
-CMD [ "uwsgi", "--http-socket", ":8080", \
-  "--uid", "1000", "--gid", "1000", \
-  "--module", "main:app", "--enable-threads", "--processes", "2", "--threads", "4"]
+CMD ["gunicorn", \
+  "--bind", \
+  "0.0.0.0:8080", \
+  "--workers=2", \
+  "--worker-class=gevent", \
+  "--worker-connections=1000", \
+  "--log-level=info", \
+  "--access-logfile", "-", \
+  "--access-logformat", "{\"remote_ip\":\"%(h)s\",\"request_id\":\"%({X-Request-Id}i)s\",\"response_code\":\"%(s)s\",\"request_method\":\"%(m)s\",\"request_path\":\"%(U)s\",\"request_querystring\":\"%(q)s\",\"request_timetaken\":\"%(D)s\",\"response_length\":\"%(B)s\"}", \
+  "app.wsgi:application"]

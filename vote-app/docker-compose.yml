@@ -14,7 +14,7 @@ services:
     - ELASTIC_APM_SERVICE_NAME=front
     - ELASTIC_APM_SERVER_URL=http://apm-server:8200
     - ELASTIC_APM_USE_STRUCTLOG=true
-    - ELASTIC_APM_SPAN_FRAMES_MIN_DURATION="-1ms"
+    - ELASTIC_APM_SPAN_FRAMES_MIN_DURATION=1ms
     depends_on:
     - back
     # - jaeger

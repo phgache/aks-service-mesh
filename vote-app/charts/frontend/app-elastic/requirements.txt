@@ -1,7 +1,9 @@
 django
 django-structlog
-opentracing_instrumentation
-uwsgi 
-elastic-apm[flask] 
+opentracing_instrumentation 
+gunicorn
+gevent
+elastic-apm
 elastic-apm[opentracing]
 structlog
+requests

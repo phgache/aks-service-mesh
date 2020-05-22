@@ -6,8 +6,8 @@ source ./configuration.sh
 # FRONT_VERSION=elastic-v1
 # BACK_VERSION=elastic-v1
 
-FRONT_VERSION=jaeger-v1
-BACK_VERSION=jaeger-v1
+FRONT_VERSION=elastic-v1
+BACK_VERSION=elastic-v1
 
 ELASTIC_APM_TOKEN=$(kubectl get secret/apmserver-apm-token -n elastic-system -o go-template='{{index .data "secret-token" | base64decode}}')
 
