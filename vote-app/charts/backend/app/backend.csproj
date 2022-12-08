@@ -10,7 +10,7 @@
     <PackageReference Include="Jaeger.Thrift.VendoredThrift" Version="0.3.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="OpenTracing" Version="0.12.0" />
     <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.601" />
